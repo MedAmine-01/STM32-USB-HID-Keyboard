@@ -56,6 +56,8 @@ static void MX_GPIO_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint8_t buffer[8];
+int i;
+int pressed=0;
 /* USER CODE END 0 */
 
 /**
@@ -103,10 +105,38 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  buffer[3]= 26;
+	  GPIOA->ODR=(1<<i);
+	  i++;
+
+	  if(i==4){
+		  i=1;
+		  pressed=0;
+	  }
+	  if(i==3 && HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7)==GPIO_PIN_SET){
+		  buffer[3]= 26;
+		  pressed=1;
+	  }
+	  else if(i==1 && HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6)==GPIO_PIN_SET){
+		  buffer[3]= 4;
+		  pressed=1;
+	  }
+	  else if(i==3 && HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6)==GPIO_PIN_SET){
+		  buffer[3]= 22;
+		  pressed=1;
+	  }
+	  else if(i==2&& HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6)==GPIO_PIN_SET){
+		  buffer[3]= 7;
+		  pressed=1;
+	  }
+	  else if(!pressed && i==3){
+		  buffer[3]=0;
+	  }
+	  USBD_HID_SendReport(&hUsbDeviceFS, buffer, 8);
+	  HAL_Delay(10);
+	  /*buffer[3]= 26;
 	  USBD_HID_SendReport(&hUsbDeviceFS, buffer, 8);
 	  HAL_Delay(500);
-	  buffer[3]= 7;
+	  buffer[3]= 7;ss
 	  USBD_HID_SendReport(&hUsbDeviceFS, buffer, 8);
 	  HAL_Delay(500);
 	  buffer[3]= 22;
@@ -118,6 +148,7 @@ int main(void)
 	  buffer[3]= 0;
 	  USBD_HID_SendReport(&hUsbDeviceFS, buffer, 8);
 	  HAL_Delay(500);
+*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -178,12 +209,29 @@ void SystemClock_Config(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : PA0 PA1 PA2 PA3 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PA4 PA5 PA6 PA7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
